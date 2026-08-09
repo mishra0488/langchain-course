@@ -1,26 +1,41 @@
-import os
 from dotenv import load_dotenv
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_unstructured import UnstructuredLoader
+from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
-from langchain_pinecone import PineconeVectorStore
-from langchain_text_splitters import CharacterTextSplitter
 
 load_dotenv()
 
-if __name__ == '__main__':
-    print("Ingesting...") #Load
-    loader = UnstructuredLoader(file_path="C:\Automation\langchain-course\mediumblog1.txt", chunking_strategy="basic", max_characters=1000000)
-    document = loader.load()
 
-    print("splitting") #Split
-    # Limit chunk size to 1000 characters, overlap = 0 means chunks will not have overlapping data
-    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
-    texts = text_splitter.split_documents(document)
-    print(f"created {len(texts)} chunks")
+urls = [
+    "https://lilianweng.github.io/posts/2023-06-23-agent/",
+    "https://lilianweng.github.io/posts/2023-03-15-prompt-engineering/",
+    "https://lilianweng.github.io/posts/2023-10-25-adv-attack-llm/",
+]
 
-    # Embedding
-    embeddings = OpenAIEmbeddings(openai_api_key=os.environ.get("OPENAI_API_KEY"))
+docs = [
+    UnstructuredLoader(
+        web_url=url, chunking_strategy="basic", max_characters=1000000
+    ).load()
+    for url in urls
+]
 
-    print("ingesting...")#Store
-    PineconeVectorStore.from_documents(texts, embeddings, index_name=os.environ["INDEX_NAME"])
-    print("finish")
+docs_list = [item for sublist in docs for item in sublist]
+
+text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
+    chunk_size=250, chunk_overlap=0
+)
+doc_splits = text_splitter.split_documents(docs_list)
+
+# vectorstore = Chroma.from_documents(
+#     documents=doc_splits,
+#     collection_name="rag-chroma",
+#     embedding=OpenAIEmbeddings(),
+#     persist_directory="./.chroma",
+# )
+
+retriever = Chroma(
+    collection_name="rag-chroma",
+    persist_directory="./.chroma",
+    embedding_function=OpenAIEmbeddings(),
+).as_retriever()

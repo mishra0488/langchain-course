@@ -16,4 +16,10 @@ dependencies = [
     "langchainhub>=0.1.21",
     "unstructured>=0.23.1",
     "langchain-text-splitters>=1.1.2",
+    "beautifulsoup4>=4.15.0",
+    "langgraph>=1.2.10",
+    "tavily-python>=0.7.27",
+    "langchain-chroma>=1.1.0",
+    "pytest>=9.1.1",
+    "langchain-tavily>=0.2.18",
 ]
