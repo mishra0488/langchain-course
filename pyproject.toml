@@ -22,4 +22,5 @@ dependencies = [
     "langchain-chroma>=1.1.0",
     "pytest>=9.1.1",
     "langchain-tavily>=0.2.18",
+    "langchain-mcp-adapters>=0.3.2",
 ]
